@@ -2,11 +2,17 @@ export default function App() {
   return (
     <div
       style={{
-        backgroundColor: '#1a1a2e',
+        backgroundImage:
+          "url('/hearth-new/images/forest.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         color: 'white',
+        textShadow:
+          '0 2px 8px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 1)',
         fontSize: 48,
         width: '100vw',
-        height: '100vh',
+        minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
