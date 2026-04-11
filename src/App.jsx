@@ -2,8 +2,7 @@ export default function App() {
   return (
     <div
       style={{
-        backgroundImage:
-          "url('/hearth-new/images/forest.jpg')",
+        backgroundImage: `url('${import.meta.env.BASE_URL}images/forest.jpg')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
