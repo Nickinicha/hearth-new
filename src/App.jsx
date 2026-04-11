@@ -1,16 +1,18 @@
-function App() {
+export default function App() {
   return (
     <div
       style={{
-        backgroundImage:
-          "url('/images/forest-bg.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        width: "100vw",
-        height: "100vh",
+        backgroundColor: '#1a1a2e',
+        color: 'white',
+        fontSize: 48,
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
     >
-
+      Hearth
     </div>
   )
 }
