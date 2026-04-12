@@ -9,7 +9,7 @@
   justify-content: center;
 }
 
-/* Layer 1 — forest background */
+/* Layer 1 — forest background (slow zoom “into” the scene) */
 .forest-bg {
   position: absolute;
   inset: 0;
@@ -18,9 +18,21 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  transform-origin: center center;
+  will-change: transform;
+  animation: forestZoom 30s ease-out forwards;
 }
 
-/* Layer 2 — fog (multiple speeds, left → right) */
+@keyframes forestZoom {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.09);
+  }
+}
+
+/* Layer 2 — fog: white, semi-transparent, slow L → R, seamless loops */
 .fog {
   position: absolute;
   inset: 0;
@@ -29,71 +41,66 @@
 }
 
 .fog-1 {
+  z-index: 1;
   background: repeating-linear-gradient(
     90deg,
     rgba(255, 255, 255, 0) 0px,
-    rgba(255, 255, 255, 0.06) 100px,
-    rgba(255, 255, 255, 0.18) 220px,
-    rgba(255, 255, 255, 0.07) 340px,
-    rgba(255, 255, 255, 0) 460px
+    rgba(255, 255, 255, 0.05) 120px,
+    rgba(255, 255, 255, 0.14) 260px,
+    rgba(255, 255, 255, 0.06) 400px,
+    rgba(255, 255, 255, 0) 520px
   );
-  background-size: 460px 100%;
-  opacity: 0.85;
-  animation: fogScroll 55s linear infinite;
+  background-size: 520px 100%;
+  opacity: 0.72;
+  filter: blur(0.5px);
+  animation: fogDriftA 95s linear infinite;
 }
 
 .fog-2 {
   z-index: 2;
-  background: radial-gradient(
-      ellipse 120% 80% at 30% 50%,
-      rgba(255, 255, 255, 0.22) 0%,
-      transparent 55%
+  background:
+    radial-gradient(
+      ellipse 140% 90% at 25% 45%,
+      rgba(255, 255, 255, 0.18) 0%,
+      transparent 50%
     ),
     radial-gradient(
-      ellipse 100% 70% at 70% 40%,
-      rgba(255, 255, 255, 0.15) 0%,
-      transparent 50%
+      ellipse 110% 75% at 75% 55%,
+      rgba(255, 255, 255, 0.12) 0%,
+      transparent 48%
     );
-  background-size: 200% 100%;
-  opacity: 0.55;
-  animation: fogDriftWide 78s linear infinite;
+  background-size: 220% 100%;
+  opacity: 0.5;
+  filter: blur(1.5px);
+  animation: fogDriftB 130s linear infinite;
 }
 
 .fog-3 {
   z-index: 3;
   background: repeating-linear-gradient(
-    105deg,
+    98deg,
     rgba(255, 255, 255, 0) 0px,
-    rgba(255, 255, 255, 0.04) 80px,
-    rgba(255, 255, 255, 0.12) 180px,
-    rgba(255, 255, 255, 0.05) 280px,
-    rgba(255, 255, 255, 0) 380px
+    rgba(255, 255, 255, 0.03) 100px,
+    rgba(255, 255, 255, 0.1) 240px,
+    rgba(255, 255, 255, 0.04) 360px,
+    rgba(255, 255, 255, 0) 480px
   );
-  background-size: 380px 100%;
-  opacity: 0.7;
-  filter: blur(1px);
-  animation: fogScrollFast 38s linear infinite;
+  background-size: 480px 100%;
+  opacity: 0.62;
+  filter: blur(2px);
+  animation: fogDriftC 68s linear infinite;
 }
 
-@keyframes fogScroll {
+@keyframes fogDriftA {
   0% {
     background-position: 0 0;
   }
   100% {
-    background-position: 460px 0;
+    background-position: 520px 0;
   }
 }
 
-@keyframes fogScrollFast {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: 380px 0;
-  }
-}
-
-@keyframes fogDriftWide {
+@keyframes fogDriftB {
   0% {
     background-position: 0% 50%;
   }
@@ -102,19 +109,42 @@
   }
 }
 
-/* Layer 3 — dark overlay */
+@keyframes fogDriftC {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 480px 0;
+  }
+}
+
+/* Layer 3 — general darken */
 .dark-overlay {
   position: absolute;
   inset: 0;
   z-index: 4;
   pointer-events: none;
-  background: rgba(0, 0, 0, 0.48);
+  background: rgba(0, 0, 0, 0.42);
 }
 
-/* Layer 4 — title */
+/* Layer 3b — subtle vignette (edges darker, center clearer) */
+.vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 65% 60% at 50% 48%,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.25) 55%,
+    rgba(0, 0, 0, 0.72) 100%
+  );
+}
+
+/* Layer 4 — title: 3s fade in, then infinite soft glow pulse */
 .title {
   position: relative;
-  z-index: 5;
+  z-index: 6;
   margin: 0;
   color: #fff;
   font-size: 64px;
@@ -122,20 +152,38 @@
   letter-spacing: 0.04em;
   text-align: center;
   text-shadow:
-    0 0 24px rgba(255, 255, 255, 0.45),
-    0 0 48px rgba(255, 255, 255, 0.2),
-    0 2px 12px rgba(0, 0, 0, 0.6);
+    0 0 18px rgba(255, 255, 255, 0.38),
+    0 0 36px rgba(255, 255, 255, 0.14),
+    0 2px 14px rgba(0, 0, 0, 0.65);
   opacity: 0;
-  animation: titleFadeIn 1.4s ease-out 0.15s forwards;
+  animation:
+    titleFadeIn 3s ease-out forwards,
+    titleGlowPulse 4s ease-in-out 3s infinite;
 }
 
 @keyframes titleFadeIn {
   from {
     opacity: 0;
-    filter: blur(4px);
+    filter: blur(6px);
   }
   to {
     opacity: 1;
     filter: blur(0);
+  }
+}
+
+@keyframes titleGlowPulse {
+  0%,
+  100% {
+    text-shadow:
+      0 0 18px rgba(255, 255, 255, 0.38),
+      0 0 36px rgba(255, 255, 255, 0.14),
+      0 2px 14px rgba(0, 0, 0, 0.65);
+  }
+  50% {
+    text-shadow:
+      0 0 28px rgba(255, 255, 255, 0.62),
+      0 0 52px rgba(255, 255, 255, 0.26),
+      0 2px 14px rgba(0, 0, 0, 0.65);
   }
 }
