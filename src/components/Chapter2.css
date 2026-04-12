@@ -1,0 +1,491 @@
+.ch2 {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  color: #e8eaef;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: clamp(1.1rem, 2.6vw, 1.35rem);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ch2-scene {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem 3.5rem;
+  opacity: 0;
+  animation: ch2SceneIn 0.9s ease-out forwards;
+}
+
+@keyframes ch2SceneIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.ch2-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.ch2-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.56);
+}
+
+.ch2-overlay--blue {
+  background: linear-gradient(
+    180deg,
+    rgba(15, 22, 38, 0.72) 0%,
+    rgba(18, 24, 36, 0.65) 50%,
+    rgba(12, 16, 26, 0.78) 100%
+  );
+}
+
+.ch2-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.ch2-type-wrap {
+  text-align: center;
+  max-width: 560px;
+  min-height: 8rem;
+}
+
+.ch2-type-line {
+  margin: 0;
+  white-space: pre-line;
+  color: #eef1f6;
+  text-shadow:
+    0 0 1px rgba(100, 140, 200, 0.3),
+    0 2px 14px rgba(0, 0, 0, 0.65);
+}
+
+.ch2-type-line--glitch {
+  animation: ch2TypeGlitch 4s ease-in-out infinite;
+}
+
+@keyframes ch2TypeGlitch {
+  0%,
+  100% {
+    transform: translate(0);
+    filter: blur(0);
+  }
+  25% {
+    transform: translate(-0.5px, 0.5px);
+    filter: blur(0.35px);
+  }
+  50% {
+    transform: translate(0.5px, -0.5px);
+    filter: blur(0.2px);
+  }
+  75% {
+    transform: translate(-0.3px, -0.3px);
+  }
+}
+
+.ch2-cursor {
+  display: inline-block;
+  width: 0.5ch;
+  animation: ch2Cursor 0.8s step-end infinite;
+  opacity: 0.7;
+}
+
+@keyframes ch2Cursor {
+  50% {
+    opacity: 0;
+  }
+}
+
+.ch2-pulse-hint {
+  margin-top: 1.75rem;
+  font-size: 0.92em;
+  letter-spacing: 0.04em;
+  color: rgba(200, 210, 230, 0.85);
+  animation: ch2PulseText 2.8s ease-in-out infinite;
+}
+
+.ch2-pulse-hint--sub {
+  margin-top: 0.5rem;
+  font-size: 0.88em;
+  opacity: 0.85;
+  animation-delay: 0.4s;
+}
+
+@keyframes ch2PulseText {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+.ch2-btn {
+  margin-top: 1.75rem;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.65rem 1.75rem;
+  color: rgba(235, 240, 250, 0.95);
+  background: rgba(20, 28, 42, 0.45);
+  border: 1px solid rgba(160, 180, 210, 0.45);
+  border-radius: 2px;
+  cursor: pointer;
+  opacity: 0;
+  animation: ch2BtnIn 1s ease-out forwards;
+  transition:
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.ch2-btn:hover {
+  border-color: rgba(200, 215, 240, 0.75);
+  box-shadow: 0 0 20px rgba(120, 150, 200, 0.15);
+}
+
+.ch2-btn:focus-visible {
+  outline: 1px solid rgba(180, 200, 230, 0.5);
+  outline-offset: 3px;
+}
+
+@keyframes ch2BtnIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scene 2 — contradicting */
+.ch2-contra-box {
+  min-height: 6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 520px;
+}
+
+.ch2-contra-text {
+  margin: 0;
+  line-height: 1.65;
+  animation: ch2ContraIn 0.85s ease-out forwards;
+}
+
+.ch2-contra-text--pos {
+  color: rgba(235, 238, 245, 0.95);
+}
+
+.ch2-contra-text--neg {
+  color: rgba(220, 140, 140, 0.95);
+  text-shadow: 0 0 20px rgba(120, 40, 40, 0.35);
+}
+
+@keyframes ch2ContraIn {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.ch2-flicker {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #fff;
+  pointer-events: none;
+  opacity: 0;
+  animation: ch2Flicker 0.35s ease-out forwards;
+}
+
+@keyframes ch2Flicker {
+  0% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.12;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Scene 3 — mirror */
+.ch2-mirror-stage {
+  width: 100%;
+  max-width: 340px;
+  margin: 1.25rem auto 1rem;
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+.ch2-mirror-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  animation: ch2MirrorFace 12s ease-in-out infinite;
+}
+
+@keyframes ch2MirrorFace {
+  0%,
+  100% {
+    opacity: 1;
+    filter: brightness(1.12) saturate(1.2);
+  }
+  32% {
+    opacity: 0.9;
+    filter: brightness(1) saturate(0.95);
+  }
+  64% {
+    opacity: 0.78;
+    filter: brightness(0.78) saturate(0.72) contrast(1.08);
+  }
+}
+
+.ch2-block {
+  margin: 0 0 1rem;
+  white-space: pre-line;
+  opacity: 0;
+  animation: ch2BlockIn 1.2s ease-out forwards;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.55);
+}
+
+@keyframes ch2BlockIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.ch2-choices {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 380px;
+}
+
+.ch2-choice {
+  font-family: inherit;
+  text-align: left;
+  padding: 0.85rem 1.1rem;
+  color: #eef1f6;
+  background: rgba(18, 24, 38, 0.55);
+  border: 1px solid rgba(150, 170, 200, 0.35);
+  border-radius: 2px;
+  cursor: pointer;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+.ch2-choice:hover {
+  border-color: rgba(190, 205, 230, 0.55);
+  background: rgba(25, 32, 48, 0.65);
+}
+
+.ch2-choice-sub {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.82em;
+  opacity: 0.72;
+  font-style: italic;
+}
+
+/* Scene 4 */
+.ch2-s4-shake {
+  animation: glitch 2s ease-in-out forwards;
+}
+
+.ch2-s4-shake-wrap {
+  animation: glitchScene 2s ease-in-out forwards;
+}
+
+.ch2-scene--dark {
+  color: #e8e6e2;
+}
+
+.ch2-bg--void {
+  background: #020203 !important;
+}
+
+.ch2-overlay--void {
+  background: rgba(0, 0, 0, 0.88) !important;
+}
+
+.ch2-void-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background: #000;
+  pointer-events: none;
+  opacity: 0;
+  animation: ch2VoidIn 0.9s ease-out forwards;
+}
+
+.ch2-final-line--delayed {
+  margin-top: 1.5rem;
+  opacity: 0;
+  animation: ch2BlockIn 2s ease-out 0.3s forwards;
+}
+
+.ch2-whoami-layer {
+  position: relative;
+  min-height: 8rem;
+  width: 100%;
+  overflow: hidden;
+}
+
+.ch2-whoami {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  margin: 0;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  color: rgba(240, 220, 220, 0.92);
+  white-space: nowrap;
+  text-shadow: 0 0 12px rgba(80, 20, 20, 0.5);
+}
+
+.ch2-flash-full {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #fff;
+  pointer-events: none;
+  opacity: 0;
+  animation: ch2FlashFull 0.45s ease-out forwards;
+}
+
+@keyframes ch2FlashFull {
+  0% {
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.ch2-void {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: #000;
+  pointer-events: none;
+  opacity: 0;
+  animation: ch2VoidIn 0.8s ease-out forwards;
+}
+
+@keyframes ch2VoidIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.ch2-final-line {
+  margin: 0 0 1.25rem;
+  white-space: pre-line;
+  opacity: 0;
+  animation: ch2BlockIn 2.2s ease-out forwards;
+}
+
+.ch2-final-you {
+  margin-top: 2rem;
+  font-size: 1.15em;
+  letter-spacing: 0.2em;
+  opacity: 0;
+  animation: ch2BlockIn 2.5s ease-out 0.5s forwards;
+}
+
+.ch2-btn--soft {
+  margin-top: 2rem;
+  text-transform: none;
+  letter-spacing: 0.06em;
+  font-size: 1rem;
+  color: #e8e4dc;
+  border-color: rgba(180, 165, 140, 0.5);
+  background: rgba(25, 22, 18, 0.5);
+}
+
+/* Reuse Chapter 1 glitch keyframes names - duplicated for self-contained file */
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+@keyframes glitchScene {
+  0%,
+  100% {
+    filter: none;
+  }
+  22% {
+    filter: blur(0.5px) hue-rotate(-12deg) saturate(1.55) contrast(1.06);
+  }
+  48% {
+    filter: blur(0.35px) hue-rotate(28deg) saturate(1.75) contrast(1.05);
+  }
+  72% {
+    filter: blur(0.15px) hue-rotate(8deg) saturate(1.35);
+  }
+}

@@ -44,7 +44,7 @@ const SCENE4_LINES = [
   { type: 'line', text: 'That matters.' },
 ]
 
-export default function Chapter1({ onExit }) {
+export default function Chapter1({ onChapter1Complete }) {
   const [scene, setScene] = useState(1)
   const [scene1Visible, setScene1Visible] = useState(0)
   const [scene1Ready, setScene1Ready] = useState(false)
@@ -364,7 +364,7 @@ export default function Chapter1({ onExit }) {
               <button
                 type="button"
                 className="ch1-btn ch1-btn--warm"
-                onClick={onExit}
+                onClick={onChapter1Complete}
               >
                 I understand
               </button>
