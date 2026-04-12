@@ -1,0 +1,141 @@
+.scene {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Layer 1 — forest background */
+.forest-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url('/hearth-new/images/forest.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Layer 2 — fog (multiple speeds, left → right) */
+.fog {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.fog-1 {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0px,
+    rgba(255, 255, 255, 0.06) 100px,
+    rgba(255, 255, 255, 0.18) 220px,
+    rgba(255, 255, 255, 0.07) 340px,
+    rgba(255, 255, 255, 0) 460px
+  );
+  background-size: 460px 100%;
+  opacity: 0.85;
+  animation: fogScroll 55s linear infinite;
+}
+
+.fog-2 {
+  z-index: 2;
+  background: radial-gradient(
+      ellipse 120% 80% at 30% 50%,
+      rgba(255, 255, 255, 0.22) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 100% 70% at 70% 40%,
+      rgba(255, 255, 255, 0.15) 0%,
+      transparent 50%
+    );
+  background-size: 200% 100%;
+  opacity: 0.55;
+  animation: fogDriftWide 78s linear infinite;
+}
+
+.fog-3 {
+  z-index: 3;
+  background: repeating-linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 0) 0px,
+    rgba(255, 255, 255, 0.04) 80px,
+    rgba(255, 255, 255, 0.12) 180px,
+    rgba(255, 255, 255, 0.05) 280px,
+    rgba(255, 255, 255, 0) 380px
+  );
+  background-size: 380px 100%;
+  opacity: 0.7;
+  filter: blur(1px);
+  animation: fogScrollFast 38s linear infinite;
+}
+
+@keyframes fogScroll {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 460px 0;
+  }
+}
+
+@keyframes fogScrollFast {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 380px 0;
+  }
+}
+
+@keyframes fogDriftWide {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Layer 3 — dark overlay */
+.dark-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.48);
+}
+
+/* Layer 4 — title */
+.title {
+  position: relative;
+  z-index: 5;
+  margin: 0;
+  color: #fff;
+  font-size: 64px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-shadow:
+    0 0 24px rgba(255, 255, 255, 0.45),
+    0 0 48px rgba(255, 255, 255, 0.2),
+    0 2px 12px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  animation: titleFadeIn 1.4s ease-out 0.15s forwards;
+}
+
+@keyframes titleFadeIn {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
