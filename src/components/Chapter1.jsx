@@ -2,9 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import './Chapter1.css'
 
 const IMG = (name) => `/hearth-new/images/${name}`
-const AMBIENT_CH1_SRC = '/hearth-new/audio/ambient-ch1.mp3'
-const AMBIENT_FADE_MS = 3000
-const AMBIENT_TARGET_VOL = 0.4
 const MEMORY_FLASH_MS = 200
 const GLITCH_MS = 500
 
@@ -70,8 +67,6 @@ export default function Chapter1({ onExit }) {
   const [memoryFlash, setMemoryFlash] = useState(false)
   const [mirrorGlitch, setMirrorGlitch] = useState(false)
 
-  const ambientRef = useRef(null)
-  const ambientRafRef = useRef(0)
   const glitchTimerRef = useRef(0)
   const timersRef = useRef([])
 
@@ -84,38 +79,6 @@ export default function Chapter1({ onExit }) {
     setMirrorGlitch(true)
     clearTimeout(glitchTimerRef.current)
     glitchTimerRef.current = setTimeout(() => setMirrorGlitch(false), GLITCH_MS)
-  }, [])
-
-  /* Chapter 1 ambient — start on mount, stop on unmount */
-  useEffect(() => {
-    const audio = ambientRef.current
-    if (!audio) return
-
-    audio.loop = true
-    audio.volume = 0
-
-    const play = audio.play()
-    if (play !== undefined) {
-      play.catch(() => {})
-    }
-
-    const start = performance.now()
-    const step = (now) => {
-      const t = Math.min(1, (now - start) / AMBIENT_FADE_MS)
-      audio.volume = t * AMBIENT_TARGET_VOL
-      if (t < 1) {
-        ambientRafRef.current = requestAnimationFrame(step)
-      }
-    }
-    ambientRafRef.current = requestAnimationFrame(step)
-
-    return () => {
-      cancelAnimationFrame(ambientRafRef.current)
-      clearTimeout(glitchTimerRef.current)
-      audio.pause()
-      audio.currentTime = 0
-      audio.volume = 0
-    }
   }, [])
 
   /* Scene 3 — glitch when mirror stanzas appear and on epilogue */
@@ -248,7 +211,6 @@ export default function Chapter1({ onExit }) {
 
   return (
     <div className="ch1">
-      <audio ref={ambientRef} src={AMBIENT_CH1_SRC} preload="auto" loop />
       {scene === 1 && (
         <section className="ch1-scene" aria-label="Chapter 1, scene 1">
           <div

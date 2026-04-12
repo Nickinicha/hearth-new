@@ -13,14 +13,6 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.ch1 > audio {
-  position: absolute;
-  width: 0;
-  height: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
 .ch1-scene {
   position: relative;
   min-height: 100vh;
