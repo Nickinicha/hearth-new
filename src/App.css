@@ -9,6 +9,25 @@
   justify-content: center;
 }
 
+.scene > audio {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.content {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+  padding: 0 1.5rem;
+}
+
 /* Layer 1 — forest background (slow zoom “into” the scene) */
 .forest-bg {
   position: absolute;
@@ -144,7 +163,6 @@
 /* Layer 4 — title: 3s fade in, then infinite soft glow pulse */
 .title {
   position: relative;
-  z-index: 6;
   margin: 0;
   color: #fff;
   font-size: 64px;
@@ -185,5 +203,82 @@
       0 0 28px rgba(255, 255, 255, 0.62),
       0 0 52px rgba(255, 255, 255, 0.26),
       0 2px 14px rgba(0, 0, 0, 0.65);
+  }
+}
+
+/* Enter — appears after title (3s), fades in */
+.enter-btn {
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.7rem 2.4rem;
+  color: #fff;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  border-radius: 2px;
+  cursor: pointer;
+  opacity: 0;
+  animation: enterBtnFadeIn 1.2s ease-out 3.15s forwards;
+  transition:
+    box-shadow 0.4s ease,
+    border-color 0.4s ease,
+    text-shadow 0.4s ease,
+    color 0.4s ease;
+}
+
+.enter-btn:hover {
+  border-color: #fff;
+  color: #fff;
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.75),
+    0 0 28px rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 0 20px rgba(255, 255, 255, 0.25),
+    0 0 40px rgba(255, 255, 255, 0.12);
+}
+
+.enter-btn:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 3px;
+}
+
+@keyframes enterBtnFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Next line after Enter */
+.next-message {
+  margin: 0;
+  max-width: 22rem;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  text-align: center;
+  opacity: 0;
+  animation: nextMessageFadeIn 3.5s ease-out forwards;
+  text-shadow:
+    0 0 18px rgba(255, 255, 255, 0.2),
+    0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes nextMessageFadeIn {
+  from {
+    opacity: 0;
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
   }
 }
