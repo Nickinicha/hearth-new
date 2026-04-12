@@ -13,6 +13,14 @@
   -webkit-font-smoothing: antialiased;
 }
 
+.ch1 > audio {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .ch1-scene {
   position: relative;
   min-height: 100vh;
@@ -75,6 +83,17 @@
 
 .ch1-inner--explore {
   max-width: min(960px, 100%);
+}
+
+.ch1-explore-instruction {
+  margin: 0 0 1.5rem;
+  max-width: 600px;
+  font-size: 0.98em;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  animation: ch1LineIn 1s ease-out 0.2s forwards;
 }
 
 .ch1-line {
@@ -182,24 +201,27 @@
 
 .ch1-hotspot {
   position: absolute;
-  border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.02);
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
   cursor: pointer;
+  border-radius: 2px;
+  animation: ch1HotspotPulse 4.2s ease-in-out infinite;
   transition:
-    border-color 0.35s ease,
     background 0.35s ease,
     box-shadow 0.35s ease;
 }
 
 .ch1-hotspot:hover,
 .ch1-hotspot:focus-visible {
-  border-color: rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.04);
-  box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 0 32px rgba(255, 255, 255, 0.1),
+    0 0 20px rgba(255, 255, 255, 0.08);
 }
 
 .ch1-hotspot:focus-visible {
-  outline: none;
+  outline: 1px solid rgba(255, 255, 255, 0.25);
+  outline-offset: 2px;
 }
 
 .ch1-hotspot--table {
@@ -207,6 +229,7 @@
   left: 22%;
   width: 52%;
   height: 32%;
+  animation-delay: 0s;
 }
 
 .ch1-hotspot--chair {
@@ -214,6 +237,7 @@
   left: 4%;
   width: 26%;
   height: 42%;
+  animation-delay: 1.4s;
 }
 
 .ch1-hotspot--window {
@@ -221,6 +245,19 @@
   right: 4%;
   width: 34%;
   height: 48%;
+  animation-delay: 2.8s;
+}
+
+@keyframes ch1HotspotPulse {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 rgba(255, 255, 255, 0);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 36px rgba(255, 255, 255, 0.07),
+      0 0 22px rgba(255, 255, 255, 0.05);
+  }
 }
 
 .ch1-reveal {
@@ -245,6 +282,29 @@
   font-size: 0.78em;
   letter-spacing: 0.08em;
   opacity: 0.55;
+}
+
+/* Scene 2 — memory flash (after clicking a hotspot) */
+.ch1-memory-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: #fff;
+  pointer-events: none;
+  opacity: 0;
+  animation: ch1MemoryFlash 0.2s ease-out forwards;
+}
+
+@keyframes ch1MemoryFlash {
+  0% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 /* Scene 3 — flash */
@@ -301,4 +361,49 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+}
+
+/* Scene 3 — glitch (key emotional beats) */
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+.ch1-scene--glitch {
+  animation:
+    glitch 0.5s ease-out forwards,
+    glitchScene 0.5s ease-out forwards;
+}
+
+/* Shake + brief blur / red tint (does not override text line-in animations) */
+@keyframes glitchScene {
+  0%,
+  100% {
+    filter: none;
+  }
+  22% {
+    filter: blur(0.5px) hue-rotate(-12deg) saturate(1.55) contrast(1.06);
+  }
+  48% {
+    filter: blur(0.35px) hue-rotate(28deg) saturate(1.75) contrast(1.05);
+  }
+  72% {
+    filter: blur(0.15px) hue-rotate(8deg) saturate(1.35);
+  }
 }

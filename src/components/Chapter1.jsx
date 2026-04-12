@@ -2,6 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import './Chapter1.css'
 
 const IMG = (name) => `/hearth-new/images/${name}`
+const AMBIENT_CH1_SRC = '/hearth-new/audio/ambient-ch1.mp3'
+const AMBIENT_FADE_MS = 3000
+const AMBIENT_TARGET_VOL = 0.4
+const MEMORY_FLASH_MS = 200
+const GLITCH_MS = 500
 
 const SCENE1_SEQUENCE = [
   { type: 'line', text: 'The house was always clean.' },
@@ -62,12 +67,89 @@ export default function Chapter1({ onExit }) {
   const [scene4Visible, setScene4Visible] = useState(0)
   const [scene4Ready, setScene4Ready] = useState(false)
 
+  const [memoryFlash, setMemoryFlash] = useState(false)
+  const [mirrorGlitch, setMirrorGlitch] = useState(false)
+
+  const ambientRef = useRef(null)
+  const ambientRafRef = useRef(0)
+  const glitchTimerRef = useRef(0)
   const timersRef = useRef([])
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout)
     timersRef.current = []
   }, [])
+
+  const fireGlitch = useCallback(() => {
+    setMirrorGlitch(true)
+    clearTimeout(glitchTimerRef.current)
+    glitchTimerRef.current = setTimeout(() => setMirrorGlitch(false), GLITCH_MS)
+  }, [])
+
+  /* Chapter 1 ambient — start on mount, stop on unmount */
+  useEffect(() => {
+    const audio = ambientRef.current
+    if (!audio) return
+
+    audio.loop = true
+    audio.volume = 0
+
+    const play = audio.play()
+    if (play !== undefined) {
+      play.catch(() => {})
+    }
+
+    const start = performance.now()
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / AMBIENT_FADE_MS)
+      audio.volume = t * AMBIENT_TARGET_VOL
+      if (t < 1) {
+        ambientRafRef.current = requestAnimationFrame(step)
+      }
+    }
+    ambientRafRef.current = requestAnimationFrame(step)
+
+    return () => {
+      cancelAnimationFrame(ambientRafRef.current)
+      clearTimeout(glitchTimerRef.current)
+      audio.pause()
+      audio.currentTime = 0
+      audio.volume = 0
+    }
+  }, [])
+
+  /* Scene 3 — glitch when mirror stanzas appear and on epilogue */
+  const prevMirrorVis = useRef(0)
+  useEffect(() => {
+    if (scene !== 3) {
+      prevMirrorVis.current = 0
+      return
+    }
+    if (mirrorEpilogue) {
+      prevMirrorVis.current = mirrorVisible
+      return
+    }
+    if (mirrorVisible === 1 && prevMirrorVis.current < 1) {
+      fireGlitch()
+    } else if (mirrorVisible === 2 && prevMirrorVis.current < 2) {
+      fireGlitch()
+    } else if (mirrorVisible === 3 && prevMirrorVis.current < 3) {
+      fireGlitch()
+    }
+    prevMirrorVis.current = mirrorVisible
+  }, [scene, mirrorVisible, mirrorEpilogue, fireGlitch])
+
+  const epilogueGlitchDone = useRef(false)
+  useEffect(() => {
+    if (scene !== 3) {
+      epilogueGlitchDone.current = false
+      return
+    }
+    if (mirrorEpilogue && !epilogueGlitchDone.current) {
+      epilogueGlitchDone.current = true
+      fireGlitch()
+    }
+  }, [scene, mirrorEpilogue, fireGlitch])
 
   /* Scene 1 — line by line */
   useEffect(() => {
@@ -154,12 +236,19 @@ export default function Chapter1({ onExit }) {
     scene2Found.table && scene2Found.chair && scene2Found.window
 
   const openHotspot = (key) => {
-    setScene2Found((prev) => ({ ...prev, [key]: true }))
-    setScene2Active(key)
+    if (memoryFlash) return
+    setMemoryFlash(true)
+    const id = setTimeout(() => {
+      setMemoryFlash(false)
+      setScene2Found((prev) => ({ ...prev, [key]: true }))
+      setScene2Active(key)
+    }, MEMORY_FLASH_MS)
+    timersRef.current.push(id)
   }
 
   return (
     <div className="ch1">
+      <audio ref={ambientRef} src={AMBIENT_CH1_SRC} preload="auto" loop />
       {scene === 1 && (
         <section className="ch1-scene" aria-label="Chapter 1, scene 1">
           <div
@@ -193,6 +282,9 @@ export default function Chapter1({ onExit }) {
 
       {scene === 2 && (
         <section className="ch1-scene" aria-label="Chapter 1, scene 2">
+          {memoryFlash && (
+            <div className="ch1-memory-flash" aria-hidden="true" />
+          )}
           <div
             className="ch1-bg"
             style={{ backgroundImage: `url(${IMG('dining.jpg')})` }}
@@ -200,6 +292,11 @@ export default function Chapter1({ onExit }) {
           />
           <div className="ch1-overlay" aria-hidden="true" />
           <div className="ch1-inner ch1-inner--explore">
+            <p className="ch1-explore-instruction">
+              Something feels out of place.
+              <br />
+              Look closer.
+            </p>
             <div className="ch1-hotspot-layer">
               <button
                 type="button"
@@ -225,11 +322,9 @@ export default function Chapter1({ onExit }) {
                 {SCENE2_MESSAGES[scene2Active]}
               </div>
             )}
-            <p className="ch1-hint">
-              {scene2AllFound
-                ? 'You may continue.'
-                : 'Look closer at the room.'}
-            </p>
+            {scene2AllFound && (
+              <p className="ch1-hint">You may continue.</p>
+            )}
             {scene2AllFound && (
               <button
                 type="button"
@@ -244,7 +339,10 @@ export default function Chapter1({ onExit }) {
       )}
 
       {scene === 3 && (
-        <section className="ch1-scene" aria-label="Chapter 1, scene 3">
+        <section
+          className={`ch1-scene${mirrorGlitch ? ' ch1-scene--glitch' : ''}`}
+          aria-label="Chapter 1, scene 3"
+        >
           {mirrorFlash && <div className="ch1-flash" aria-hidden="true" />}
           <div
             className="ch1-bg"
