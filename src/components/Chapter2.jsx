@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAppAudio } from '../context/AppAudioContext.jsx'
 import './Chapter2.css'
 
@@ -41,8 +41,26 @@ const S3_AFTER_MIRROR = [
   'You could not remember\nwhich one was real.',
 ]
 
+function playSoftChime() {
+  const AC = window.AudioContext || window.webkitAudioContext
+  if (!AC) return
+  const ctx = new AC()
+  ctx.resume?.().catch(() => {})
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(523.25, ctx.currentTime)
+  gain.gain.setValueAtTime(0.0001, ctx.currentTime)
+  gain.gain.exponentialRampToValueAtTime(0.11, ctx.currentTime + 0.028)
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.42)
+  osc.connect(gain)
+  gain.connect(ctx.destination)
+  osc.start(ctx.currentTime)
+  osc.stop(ctx.currentTime + 0.48)
+}
+
 export default function Chapter2({ onExit }) {
-  const { setCh2PlaybackRate, ch2FadeToSilence } = useAppAudio()
+  const { muted, setCh2PlaybackRate, ch2FadeToSilence } = useAppAudio()
 
   const [scene, setScene] = useState(1)
 
@@ -55,6 +73,12 @@ export default function Chapter2({ onExit }) {
   const [c2Neg, setC2Neg] = useState(false)
   const [c2Flicker, setC2Flicker] = useState(false)
   const [c2Done, setC2Done] = useState(false)
+
+  const fleeBtnRef = useRef(null)
+  const [fleeTx, setFleeTx] = useState(0)
+  const [fleeTy, setFleeTy] = useState(0)
+  const [fleeReplyKey, setFleeReplyKey] = useState(0)
+  const [pleaserCommitted, setPleaserCommitted] = useState(false)
 
   const [s3Block, setS3Block] = useState(0)
   const [s3After, setS3After] = useState(0)
@@ -113,6 +137,54 @@ export default function Chapter2({ onExit }) {
     }, 3200)
     return () => clearTimeout(id)
   }, [scene, c2Pair, c2Neg, c2Done])
+
+  const onFleeMouseMove = useCallback(
+    (e) => {
+      if (pleaserCommitted) return
+      const el = fleeBtnRef.current
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      const bx = r.left + r.width / 2
+      const by = r.top + r.height / 2
+      const dx = bx - e.clientX
+      const dy = by - e.clientY
+      const dist = Math.hypot(dx, dy)
+      if (dist < 150 && dist > 0.5) {
+        const nx = dx / dist
+        const ny = dy / dist
+        setFleeTx(nx * 120)
+        setFleeTy(ny * 120)
+      } else {
+        setFleeTx(0)
+        setFleeTy(0)
+      }
+    },
+    [pleaserCommitted]
+  )
+
+  useEffect(() => {
+    if (scene !== 2 || !c2Done || pleaserCommitted) return undefined
+    window.addEventListener('mousemove', onFleeMouseMove)
+    return () => window.removeEventListener('mousemove', onFleeMouseMove)
+  }, [scene, c2Done, pleaserCommitted, onFleeMouseMove])
+
+  const handleFleeClick = () => {
+    setFleeTx(0)
+    setFleeTy(0)
+    setFleeReplyKey((k) => k + 1)
+  }
+
+  const handlePleaserClick = () => {
+    if (pleaserCommitted) return
+    if (!muted) playSoftChime()
+    setPleaserCommitted(true)
+    window.setTimeout(() => {
+      setScene(3)
+      setPleaserCommitted(false)
+      setFleeTx(0)
+      setFleeTy(0)
+    }, 1500)
+  }
 
   /* Scene 3 */
   useEffect(() => {
@@ -258,9 +330,42 @@ export default function Chapter2({ onExit }) {
               )}
             </div>
             {c2Done && (
-              <button type="button" className="ch2-btn" onClick={() => setScene(3)}>
-                Face the mirror
-              </button>
+              <div className="ch2-anchor-section">
+                <p className="ch2-anchor-prompt">Two voices. One choice.</p>
+                <div className="ch2-anchor-row">
+                  <div className="ch2-flee-zone">
+                    <div
+                      className="ch2-flee-nudge"
+                      style={{ transform: `translate(${fleeTx}px, ${fleeTy}px)` }}
+                    >
+                      <button
+                        ref={fleeBtnRef}
+                        type="button"
+                        className="ch2-btn ch2-btn--anchor flee-button"
+                        onClick={handleFleeClick}
+                      >
+                        Be myself
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className={`ch2-pleaser-btn${pleaserCommitted ? ' ch2-pleaser-btn--chosen' : ''}`}
+                    onClick={handlePleaserClick}
+                  >
+                    {pleaserCommitted ? 'Good.' : 'Be what they want'}
+                  </button>
+                </div>
+                {fleeReplyKey > 0 && (
+                  <p
+                    key={fleeReplyKey}
+                    className="ch2-flee-reply"
+                    onAnimationEnd={() => setFleeReplyKey(0)}
+                  >
+                    ...but what does that even mean?
+                  </p>
+                )}
+              </div>
             )}
           </div>
         </section>

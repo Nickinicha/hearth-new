@@ -9,6 +9,21 @@
   justify-content: center;
 }
 
+.app-chapter-root {
+  position: relative;
+  z-index: 101;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.app-chapter-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 102;
+  pointer-events: none;
+  transition: background-color 1.5s ease;
+}
+
 .scene > audio {
   position: absolute;
   width: 0;
