@@ -59,34 +59,107 @@ function playSoftChime() {
   osc.stop(ctx.currentTime + 0.48)
 }
 
-export default function Chapter2({ onExit }) {
+export default function Chapter2({
+  onExit,
+  initialSave = null,
+  syncProgress,
+  flushSave,
+}) {
   const { muted, setCh2PlaybackRate, ch2FadeToSilence } = useAppAudio()
 
-  const [scene, setScene] = useState(1)
+  const r = initialSave?.choicesMade?.ch2
+  const restoredMirror = initialSave?.choicesMade?.ch2Mirror ?? r?.mirrorChoice ?? null
 
-  const [s1Line, setS1Line] = useState(0)
-  const [s1Chars, setS1Chars] = useState(0)
-  const [s1Done, setS1Done] = useState(false)
-  const [s1ShowWalk, setS1ShowWalk] = useState(false)
+  const [scene, setScene] = useState(() => r?.scene ?? 1)
 
-  const [c2Pair, setC2Pair] = useState(0)
-  const [c2Neg, setC2Neg] = useState(false)
-  const [c2Flicker, setC2Flicker] = useState(false)
-  const [c2Done, setC2Done] = useState(false)
+  const [s1Line, setS1Line] = useState(() => r?.s1Line ?? 0)
+  const [s1Chars, setS1Chars] = useState(() => r?.s1Chars ?? 0)
+  const [s1Done, setS1Done] = useState(() => r?.s1Done ?? false)
+  const [s1ShowWalk, setS1ShowWalk] = useState(() => r?.s1ShowWalk ?? false)
+
+  const [c2Pair, setC2Pair] = useState(() => r?.c2Pair ?? 0)
+  const [c2Neg, setC2Neg] = useState(() => r?.c2Neg ?? false)
+  const [c2Flicker, setC2Flicker] = useState(() => r?.c2Flicker ?? false)
+  const [c2Done, setC2Done] = useState(() => r?.c2Done ?? false)
 
   const fleeBtnRef = useRef(null)
-  const [fleeTx, setFleeTx] = useState(0)
-  const [fleeTy, setFleeTy] = useState(0)
+  const [fleeTx, setFleeTx] = useState(() => r?.fleeTx ?? 0)
+  const [fleeTy, setFleeTy] = useState(() => r?.fleeTy ?? 0)
   const [fleeReplyKey, setFleeReplyKey] = useState(0)
-  const [pleaserCommitted, setPleaserCommitted] = useState(false)
+  const [pleaserCommitted, setPleaserCommitted] = useState(() => r?.pleaserCommitted ?? false)
 
-  const [s3Block, setS3Block] = useState(0)
-  const [s3After, setS3After] = useState(0)
-  const [s3ShowMirror, setS3ShowMirror] = useState(false)
-  const [s3ShowChoices, setS3ShowChoices] = useState(false)
-  const [mirrorChoice, setMirrorChoice] = useState(null)
+  const [s3Block, setS3Block] = useState(() => r?.s3Block ?? 0)
+  const [s3After, setS3After] = useState(() => r?.s3After ?? 0)
+  const [s3ShowMirror, setS3ShowMirror] = useState(() => r?.s3ShowMirror ?? false)
+  const [s3ShowChoices, setS3ShowChoices] = useState(() => r?.s3ShowChoices ?? false)
+  const [mirrorChoice, setMirrorChoice] = useState(() => restoredMirror)
 
-  const [s4Step, setS4Step] = useState(0)
+  const [s4Step, setS4Step] = useState(() => r?.s4Step ?? 0)
+
+  const sceneFlushReady = useRef(false)
+
+  const buildCh2Snapshot = useCallback(
+    () => ({
+      scene,
+      s1Line,
+      s1Chars,
+      s1Done,
+      s1ShowWalk,
+      c2Pair,
+      c2Neg,
+      c2Flicker,
+      c2Done,
+      fleeTx,
+      fleeTy,
+      pleaserCommitted,
+      s3Block,
+      s3After,
+      s3ShowMirror,
+      s3ShowChoices,
+      mirrorChoice,
+      s4Step,
+    }),
+    [
+      scene,
+      s1Line,
+      s1Chars,
+      s1Done,
+      s1ShowWalk,
+      c2Pair,
+      c2Neg,
+      c2Flicker,
+      c2Done,
+      fleeTx,
+      fleeTy,
+      pleaserCommitted,
+      s3Block,
+      s3After,
+      s3ShowMirror,
+      s3ShowChoices,
+      mirrorChoice,
+      s4Step,
+    ]
+  )
+
+  useEffect(() => {
+    const ch2 = buildCh2Snapshot()
+    syncProgress?.({
+      chapterId: 2,
+      currentScene: scene,
+      choicesMade: {
+        ch2,
+        ...(mirrorChoice ? { ch2Mirror: mirrorChoice } : {}),
+      },
+    })
+  }, [scene, syncProgress, buildCh2Snapshot, mirrorChoice])
+
+  useEffect(() => {
+    if (!sceneFlushReady.current) {
+      sceneFlushReady.current = true
+      return
+    }
+    flushSave?.()
+  }, [scene, flushSave])
 
   /* Scene 1 typewriter */
   useEffect(() => {

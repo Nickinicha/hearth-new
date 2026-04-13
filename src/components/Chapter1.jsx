@@ -44,31 +44,75 @@ const SCENE4_LINES = [
   { type: 'line', text: 'That matters.' },
 ]
 
-export default function Chapter1({ onChapter1Complete }) {
-  const [scene, setScene] = useState(1)
+const defaultFound = { table: false, chair: false, window: false }
+
+export default function Chapter1({
+  onChapter1Complete,
+  initialSave = null,
+  syncProgress,
+  flushSave,
+}) {
+  const ic = initialSave?.choicesMade?.ch1
+  const initialScene = initialSave?.currentScene ?? 1
+
+  const [scene, setScene] = useState(() => initialScene)
   const [scene1Visible, setScene1Visible] = useState(0)
   const [scene1Ready, setScene1Ready] = useState(false)
 
-  const [scene2Found, setScene2Found] = useState({
-    table: false,
-    chair: false,
-    window: false,
-  })
+  const [scene2Found, setScene2Found] = useState(() => ic?.scene2Found ?? { ...defaultFound })
   const [scene2Active, setScene2Active] = useState(null)
 
-  const [mirrorVisible, setMirrorVisible] = useState(0)
-  const [mirrorShowLook, setMirrorShowLook] = useState(false)
+  const [mirrorVisible, setMirrorVisible] = useState(() =>
+    initialScene >= 3 ? (ic?.mirror?.mirrorVisible ?? 0) : 0
+  )
+  const [mirrorShowLook, setMirrorShowLook] = useState(() =>
+    initialScene >= 3 ? (ic?.mirror?.mirrorShowLook ?? false) : false
+  )
   const [mirrorFlash, setMirrorFlash] = useState(false)
-  const [mirrorEpilogue, setMirrorEpilogue] = useState(false)
+  const [mirrorEpilogue, setMirrorEpilogue] = useState(() =>
+    initialScene >= 3 ? (ic?.mirror?.mirrorEpilogue ?? false) : false
+  )
 
-  const [scene4Visible, setScene4Visible] = useState(0)
-  const [scene4Ready, setScene4Ready] = useState(false)
+  const [scene4Visible, setScene4Visible] = useState(() =>
+    initialScene >= 4 ? (ic?.scene4?.scene4Visible ?? 0) : 0
+  )
+  const [scene4Ready, setScene4Ready] = useState(() =>
+    initialScene >= 4 ? (ic?.scene4?.scene4Ready ?? false) : false
+  )
 
   const [memoryFlash, setMemoryFlash] = useState(false)
   const [mirrorGlitch, setMirrorGlitch] = useState(false)
 
+  const mirrorResumePayload = useRef(
+    initialScene >= 3 && ic?.mirror ? { ...ic.mirror } : null
+  )
+  const scene4ResumePayload = useRef(
+    initialScene >= 4 && ic?.scene4 ? { ...ic.scene4 } : null
+  )
+  const sceneFlushReady = useRef(false)
+
   const glitchTimerRef = useRef(0)
   const timersRef = useRef([])
+
+  const buildCh1Snapshot = useCallback(() => {
+    return {
+      scene2Found: { ...scene2Found },
+      mirror:
+        scene >= 3
+          ? { mirrorVisible, mirrorShowLook, mirrorEpilogue }
+          : undefined,
+      scene4:
+        scene >= 4 ? { scene4Visible, scene4Ready } : undefined,
+    }
+  }, [
+    scene,
+    scene2Found,
+    mirrorVisible,
+    mirrorShowLook,
+    mirrorEpilogue,
+    scene4Visible,
+    scene4Ready,
+  ])
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout)
@@ -114,6 +158,22 @@ export default function Chapter1({ onChapter1Complete }) {
     }
   }, [scene, mirrorEpilogue, fireGlitch])
 
+  useEffect(() => {
+    syncProgress?.({
+      chapterId: 1,
+      currentScene: scene,
+      choicesMade: { ch1: buildCh1Snapshot() },
+    })
+  }, [scene, syncProgress, buildCh1Snapshot])
+
+  useEffect(() => {
+    if (!sceneFlushReady.current) {
+      sceneFlushReady.current = true
+      return
+    }
+    flushSave?.()
+  }, [scene, flushSave])
+
   /* Scene 1 — line by line */
   useEffect(() => {
     if (scene !== 1) return
@@ -141,6 +201,15 @@ export default function Chapter1({ onChapter1Complete }) {
   useEffect(() => {
     if (scene !== 3) return
     clearTimers()
+    const payload = mirrorResumePayload.current
+    if (payload) {
+      mirrorResumePayload.current = null
+      setMirrorVisible(payload.mirrorVisible ?? 0)
+      setMirrorShowLook(payload.mirrorShowLook ?? false)
+      setMirrorEpilogue(payload.mirrorEpilogue ?? false)
+      setMirrorFlash(false)
+      return
+    }
     setMirrorVisible(0)
     setMirrorShowLook(false)
     setMirrorEpilogue(false)
@@ -166,6 +235,13 @@ export default function Chapter1({ onChapter1Complete }) {
   useEffect(() => {
     if (scene !== 4) return
     clearTimers()
+    const payload = scene4ResumePayload.current
+    if (payload) {
+      scene4ResumePayload.current = null
+      setScene4Visible(payload.scene4Visible ?? 0)
+      setScene4Ready(payload.scene4Ready ?? false)
+      return
+    }
     setScene4Visible(0)
     setScene4Ready(false)
 
