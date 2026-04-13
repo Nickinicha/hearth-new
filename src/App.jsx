@@ -12,11 +12,15 @@ const CROSSFADE_MS = 2000
 const INTRO_VOL = 0.4
 const CHAPTER_VOL = 0.4
 
+function clampVolume(value) {
+  return Math.max(0, Math.min(1, value))
+}
+
 const chapterConfig = {
   1: {
-    name: 'The Silence',
+    name: 'The Forgotten Child',
     audio: '/hearth-new/audio/ambient-ch1.mp3',
-    overlay: 'rgba(20, 10, 30, 0.85)',
+    overlay: 'rgba(6, 5, 12, 0.9)',
     component: Chapter1,
   },
   2: {
@@ -73,6 +77,7 @@ export default function App() {
 
   const introRef = useRef(null)
   const chapterAudioRefs = useRef({})
+  const audioAvailableRef = useRef({ intro: true })
   const rafRef = useRef(0)
   const mutedRef = useRef(false)
   const lastVolRef = useRef({ intro: 0 })
@@ -99,6 +104,9 @@ export default function App() {
     CHAPTER_IDS.forEach((id) => {
       if (lastVolRef.current[String(id)] === undefined) {
         lastVolRef.current[String(id)] = 0
+      }
+      if (audioAvailableRef.current[String(id)] === undefined) {
+        audioAvailableRef.current[String(id)] = true
       }
     })
   }, [])
@@ -159,14 +167,15 @@ export default function App() {
     (audio, from, to, durationMs, onDone, track) => {
       if (!audio) return
       const tk = trackKey(track)
-      audio.volume = from * (mutedRef.current ? 0 : 1)
-      lastVolRef.current[tk] = from
+      const start = clampVolume(from)
+      audio.volume = clampVolume(start * (mutedRef.current ? 0 : 1))
+      lastVolRef.current[tk] = start
       const t0 = performance.now()
       const tick = (now) => {
         const u = Math.min(1, (now - t0) / durationMs)
-        const raw = from + (to - from) * u
+        const raw = clampVolume(start + (to - start) * u)
         lastVolRef.current[tk] = raw
-        audio.volume = raw * (mutedRef.current ? 0 : 1)
+        audio.volume = clampVolume(raw * (mutedRef.current ? 0 : 1))
         if (u < 1) {
           rafRef.current = requestAnimationFrame(tick)
         } else {
@@ -186,15 +195,15 @@ export default function App() {
       const t0 = performance.now()
       const tick = (now) => {
         const u = Math.min(1, (now - t0) / durationMs)
-        const fromV = fromStartVol * (1 - u)
-        const toV = toEndVol * u
+        const fromV = clampVolume(fromStartVol * (1 - u))
+        const toV = clampVolume(toEndVol * u)
         const m = mutedRef.current ? 0 : 1
         if (fromEl) {
-          fromEl.volume = fromV * m
+          fromEl.volume = clampVolume(fromV * m)
           lastVolRef.current[fk] = fromV
         }
         if (toEl) {
-          toEl.volume = toV * m
+          toEl.volume = clampVolume(toV * m)
           lastVolRef.current[tk] = toV
         }
         if (u < 1) {
@@ -206,13 +215,25 @@ export default function App() {
             lastVolRef.current[fk] = 0
           }
           lastVolRef.current[tk] = toEndVol
-          if (toEl) toEl.volume = toEndVol * m
+          if (toEl) toEl.volume = clampVolume(toEndVol * m)
         }
       }
       rafRef.current = requestAnimationFrame(tick)
     },
     [cancelRaf]
   )
+
+  const safePlay = useCallback((el, track) => {
+    if (!el) return false
+    if (audioAvailableRef.current[trackKey(track)] === false) return false
+    const p = el.play()
+    if (p !== undefined) {
+      p.catch(() => {
+        audioAvailableRef.current[trackKey(track)] = false
+      })
+    }
+    return true
+  }, [])
 
   const toggleMute = useCallback(() => {
     setMuted((m) => {
@@ -221,7 +242,7 @@ export default function App() {
         const apply = (el, key) => {
           if (!el) return
           const tk = trackKey(key)
-          el.volume = next ? 0 : (lastVolRef.current[tk] ?? 0)
+          el.volume = clampVolume(next ? 0 : (lastVolRef.current[tk] ?? 0))
         }
         apply(introRef.current, 'intro')
         CHAPTER_IDS.forEach((id) => apply(chapterAudioRefs.current[id], id))
@@ -258,8 +279,10 @@ export default function App() {
           ? (lastVolRef.current[trackKey(from)] ?? fromEl.volume ?? 0)
           : 0
 
-      const tp = toEl.play()
-      if (tp !== undefined) tp.catch(() => {})
+      if (audioAvailableRef.current[trackKey(to)] === false) return
+
+      const canPlay = safePlay(toEl, to)
+      if (!canPlay) return
 
       if (fromEl && from !== to && fromVol > 0) {
         crossfadePair(fromEl, toEl, from, to, fromVol, targetVol, CROSSFADE_MS)
@@ -272,7 +295,7 @@ export default function App() {
         fadeVolume(toEl, 0, targetVol, CROSSFADE_MS, undefined, to)
       }
     },
-    [cancelRaf, crossfadePair, fadeVolume]
+    [cancelRaf, crossfadePair, fadeVolume, safePlay]
   )
 
   const startChapterAudioFromCold = useCallback(
@@ -298,11 +321,11 @@ export default function App() {
       el.loop = true
       el.volume = 0
       lastVolRef.current[String(chId)] = 0
-      const p = el.play()
-      if (p !== undefined) p.catch(() => {})
+      const canPlay = safePlay(el, chId)
+      if (!canPlay) return
       fadeVolume(el, 0, CHAPTER_VOL, CROSSFADE_MS, undefined, chId)
     },
-    [cancelRaf, fadeVolume]
+    [cancelRaf, fadeVolume, safePlay]
   )
 
   const handleEnter = useCallback(() => {
@@ -328,8 +351,7 @@ export default function App() {
     intro.volume = INTRO_VOL * (mutedRef.current ? 0 : 1)
     lastVolRef.current.intro = INTRO_VOL
 
-    const ip = intro.play()
-    if (ip !== undefined) ip.catch(() => {})
+    safePlay(intro, 'intro')
 
     crossfadeAmbient('intro', 1)
   }, [crossfadeAmbient])
@@ -372,8 +394,7 @@ export default function App() {
     intro.volume = 0
     lastVolRef.current.intro = 0
 
-    const introPlay = intro.play()
-    if (introPlay !== undefined) introPlay.catch(() => {})
+    safePlay(intro, 'intro')
 
     if (fromEl && fromVol > 0) {
       crossfadePair(fromEl, intro, activeChapterId, 'intro', fromVol, INTRO_VOL, CROSSFADE_MS)
@@ -468,7 +489,7 @@ export default function App() {
     if (!el) return
     el.playbackRate = 1
     const v = lastVolRef.current['2'] ?? CHAPTER_VOL
-    el.volume = v * (mutedRef.current ? 0 : 1)
+    el.volume = clampVolume(v * (mutedRef.current ? 0 : 1))
   }, [])
 
   const ch2FadeToSilence = useCallback(
@@ -548,7 +569,15 @@ export default function App() {
   return (
     <AppAudioContext.Provider value={audioContextValue}>
       <div className="scene">
-        <audio ref={introRef} src={INTRO_SRC} preload="auto" loop />
+        <audio
+          ref={introRef}
+          src={INTRO_SRC}
+          preload="auto"
+          loop
+          onError={() => {
+            audioAvailableRef.current.intro = false
+          }}
+        />
         {CHAPTER_IDS.map((id) => (
           <audio
             key={id}
@@ -556,6 +585,9 @@ export default function App() {
             src={chapterConfig[id].audio}
             preload="auto"
             loop
+            onError={() => {
+              audioAvailableRef.current[String(id)] = false
+            }}
           />
         ))}
 

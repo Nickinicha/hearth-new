@@ -12,8 +12,9 @@ export default function Chapter4Placeholder({
   }, [syncProgress])
 
   return (
-    <div className="ch-placeholder" aria-label="Chapter 4 placeholder">
-      <p>Coming soon…</p>
+    <div className="ch-placeholder ch-placeholder--return" aria-label="Chapter 4 placeholder">
+      <p>The Return</p>
+      <p className="ch-placeholder-atmo">A thin warmth reaches through the fog.</p>
       <nav className="ch-placeholder-nav" aria-label="Chapter navigation">
         <button
           type="button"
